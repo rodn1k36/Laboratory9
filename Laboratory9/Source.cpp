@@ -7,9 +7,15 @@ int main() {
 	arr[1] = 3;
 	arr[2] = 2;
 	arr[3] = 1;
-	Permutation a(4, arr);
-	Permutation b(123678);
-	b.next();
 
-	b.print();
+	Permutation b(4321);
+	/*b.next();
+	b.print(); */
+	std::cout << '\n';
+	Permutation a(2314);
+	Permutation c;
+	c = b * a;
+	c.print();
+	//a.previous();
+	delete[] arr;
 }

@@ -7,10 +7,12 @@ private:
 	size_t n = 0;
 	unsigned int* arr_nums = nullptr;
 public:
-	Permutation() = default;
+	Permutation();
 	Permutation(unsigned int n);
 	Permutation(unsigned int n, unsigned int* &P);
-	//friend std::ostream& operator <<(std::ostream& os, Permutation& P);
+	~Permutation();
+	Permutation& operator= (Permutation& P);
+	//std::ostream& operator <<(std::ostream& os);
 	Permutation& operator* (Permutation& P);
 	Permutation& next ();
 	Permutation& previous();
@@ -22,5 +24,6 @@ public:
 	bool operator> (Permutation& P);
 	bool operator>= (Permutation& P);
 	bool operator<= (Permutation& P);
-	void print();
+	//std::ostream& operator<< (std::ostream& os);
+	void print() const;
 };

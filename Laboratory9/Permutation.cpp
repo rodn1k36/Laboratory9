@@ -1,6 +1,10 @@
 #include "Permutation.h"
 #include <iostream>
 
+Permutation::Permutation() : arr_nums(nullptr), n(0)
+{
+}
+
 Permutation::Permutation(unsigned int num)
 {
 	size_t order = 0;
@@ -25,16 +29,33 @@ Permutation::Permutation(unsigned int n, unsigned int*& P) : n(n), arr_nums(new 
 		arr_nums[i] = P[i]; // нужно ли удалять nullptr если хочу переопределить указатель
 }
 
+Permutation::~Permutation()
+{
+	delete[] arr_nums;
+}
+
+Permutation& Permutation::operator= (Permutation& P)
+{
+	n = P.n;
+	delete[] arr_nums;
+	arr_nums = new unsigned int[n];
+	for (int i = 0; i < n; ++i)
+		arr_nums[i] = P.arr_nums[i];
+	//arr_nums = P.arr_nums;
+	return *this;
+}
+
 Permutation& Permutation::operator*(Permutation& P)
 {
 	if (n == P.n) {
-		Permutation multi;
-		multi.n = n;
-		multi.arr_nums = new unsigned int[n];
+		unsigned int* temp = new unsigned int[n];
 		for (int i = 0; i < n; ++i) {
-			multi.arr_nums[i] = P.arr_nums[arr_nums[i]];
+			temp[i] = P.arr_nums[arr_nums[i]-1];
+			arr_nums[i] = temp[i];
 		}
-		return multi;
+		//arr_nums = temp;
+		delete[] temp;
+		return *this;
 	}
 	else
 		throw 1;
@@ -62,15 +83,19 @@ Permutation& Permutation::next()
 	int minimal_more_num_index = index;
 	int minimal_more_num = INT_MAX; // минимально большее число (index) чем turning_num
 	for (int i = index; i < index + non_increasing_len; ++i) {
-		if (turning_num < arr_nums[i] && arr_nums[i] < minimal_more_num)
+		if (turning_num < arr_nums[i] && arr_nums[i] < minimal_more_num) {
 			minimal_more_num_index = i;
+			minimal_more_num = arr_nums[i];
+		}
 	}
-	std::swap(arr_nums[index - 1], arr_nums[minimal_more_num_index]);
+	if (index != 0) {
+		std::swap(arr_nums[index - 1], arr_nums[minimal_more_num_index]); // можно ли написать через тернарный оператор если то if без else
 
-	for (int i = index; i < index + non_increasing_len - 1; ++i)
-		for (int j = i + 1; j < n; ++j)
-			if (arr_nums[i] < arr_nums[j])
-				std::swap(arr_nums[i], arr_nums[j]);
+		for (int i = index; i < index + non_increasing_len; ++i)
+			for (int j = i + 1; j < n; ++j)
+				if (arr_nums[i] > arr_nums[j])
+					std::swap(arr_nums[i], arr_nums[j]);
+	}
 	return *this;
 }
 
@@ -79,32 +104,37 @@ Permutation& Permutation::next()
 
 Permutation& Permutation::previous()
 {
-	int non_increasing_len = 0;
-	int index = 0; // индекс первого элемента неубывающей последовательсности
+	int increasing_len = 0;
+	int index = 0; 
 	int count = 0;
 	int turning_num = arr_nums[0];
 	for (int i = 0; i < n - 1; ++i) {
 		if (arr_nums[i] <= arr_nums[i + 1]) {
 			++count;
-			non_increasing_len = std::max(non_increasing_len, count);
+			increasing_len = std::max(increasing_len, count);
 		}
 		else {
-			non_increasing_len = std::max(non_increasing_len, count);
-			index = i - non_increasing_len + 1; // с нуля
-			turning_num = arr_nums[index - 1];
+			if (increasing_len < count) {
+				increasing_len = count;
+				index = i - increasing_len + 1;
+			}
 			count = 0;
 		}
 	}
-	int minimal_more_num_index = -1;
-	int minimal_more_num = INT_MAX; // минимально большее число (index) чем turning_num
-	for (int i = index; i < n; ++i) {
-		if (turning_num < arr_nums[i] && arr_nums[i] < minimal_more_num)
-			minimal_more_num_index = i;
-	}
-	std::swap(arr_nums[index - 1], arr_nums[minimal_more_num_index]);
+	turning_num = arr_nums[index - 1];
 
-	for (int i = index; i < n - 1; ++i)
-		for (int j = i + 1; j < n; ++j)
+	int max_more_num_index = index;
+	int max_more_num = -1;
+	for (int i = index; i < index + increasing_len; ++i) {
+		if (turning_num < arr_nums[i] && arr_nums[i] > max_more_num) {
+			max_more_num_index = i;
+			max_more_num = arr_nums[i];
+		}
+	}
+	if (index > 0) std::swap(arr_nums[index - 1], arr_nums[max_more_num_index]);
+
+	for (int i = index; i < index + increasing_len; ++i) // sort
+		for (int j = i + 1; j < index + increasing_len; ++j)
 			if (arr_nums[i] < arr_nums[j])
 				std::swap(arr_nums[i], arr_nums[j]);
 	return *this;
@@ -167,15 +197,13 @@ bool Permutation::operator<=(Permutation& P)
 	return (*this < P) || (*this == P);
 }
 
-void Permutation::print()
-{
-	for (int i = 0; i < n; ++i)
+void Permutation::print() const{
+	for (int i = 0; i < n; ++i) {
 		std::cout << arr_nums[i];
+	}
 }
 
-//std::ostream& operator<<(std::ostream& os, Permutation& P)
-//{
-//	for (int i = 0; i < P.n; ++i)
-//		os << P.arr_nums[i];
+//std::ostream& operator<< (std::ostream& os, const Permutation& P) {
+//	P.print(os);
 //	return os;
 //}
